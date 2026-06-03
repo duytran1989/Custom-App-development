@@ -36,4 +36,12 @@
     <string name="unit_km">km</string>
     <string name="sunrise">Sunrise</string>
     <string name="sunset">Sunset</string>
+    <string name="label_48hr_forecast">48-Hour Forecast</string>
+    <string name="label_wind_direction">Wind Dir</string>
+    <string name="label_wind_gust">Wind Gust</string>
+    <string name="label_na">N/A</string>
+    <string name="nav_map">Radar</string>
+    <string name="label_radar_map">Rain Radar</string>
+    <string name="label_offline_mode">Offline — showing cached data</string>
+    <string name="label_map_loading">Loading radar map…</string>
 </resources>

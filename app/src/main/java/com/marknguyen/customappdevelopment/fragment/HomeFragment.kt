@@ -82,6 +82,13 @@ class HomeFragment : Fragment() {
                         navigateToDetail(result.data.name)
                     }
                 }
+                is WeatherResult.CachedSuccess -> {
+                    binding.progressBar.visibility = View.GONE
+                    if (pendingNavigation) {
+                        pendingNavigation = false
+                        navigateToDetail(result.data.name)
+                    }
+                }
                 is WeatherResult.Error -> {
                     binding.progressBar.visibility = View.GONE
                     if (pendingNavigation) {
@@ -95,8 +102,13 @@ class HomeFragment : Fragment() {
         viewModel.favouriteWeather.observe(viewLifecycleOwner) { results ->
             binding.progressBar.visibility = View.GONE
             val successItems = results
-                .filterIsInstance<WeatherResult.Success<CurrentWeatherResponse>>()
-                .map { it.data }
+                .mapNotNull { result ->
+                    when (result) {
+                        is WeatherResult.Success -> result.data
+                        is WeatherResult.CachedSuccess -> result.data
+                        else -> null
+                    }
+                }
 
             cityAdapter.submitList(successItems)
 

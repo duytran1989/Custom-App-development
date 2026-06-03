@@ -53,7 +53,8 @@ data class Weather(
 
 data class Wind(
     val speed: Double,
-    val deg: Int
+    val deg: Int,
+    val gust: Double? = null
 )
 
 data class City(

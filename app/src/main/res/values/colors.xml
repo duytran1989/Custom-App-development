@@ -11,4 +11,8 @@
     <color name="text_secondary">#757575</color>
     <color name="error_red">#D32F2F</color>
     <color name="divider">#E0E0E0</color>
+    <color name="alert_warning">#E65100</color>
+    <color name="alert_danger">#B71C1C</color>
+    <color name="alert_info">#0D47A1</color>
+    <color name="offline_banner">#F57F17</color>
 </resources>

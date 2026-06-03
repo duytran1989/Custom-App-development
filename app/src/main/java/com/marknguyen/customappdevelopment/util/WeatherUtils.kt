@@ -26,6 +26,12 @@ object WeatherUtils {
         }
     }
 
+    fun getWindDirection(deg: Int): String {
+        val dirs = arrayOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+        val idx = ((deg + 22.5) / 45.0).toInt() % 8
+        return dirs[idx]
+    }
+
     fun formatVisibility(visibilityMeters: Int): String {
         return if (visibilityMeters >= 1000) {
             "${visibilityMeters / 1000} km"
@@ -79,7 +85,7 @@ object WeatherUtils {
             }
     }
 
-    // Returns the next 8 forecast items (24 hours in 3-hour steps)
+    // Returns up to 16 forecast items (48 hours in 3-hour steps)
     fun getHourlyForecast(items: List<ForecastItem>): List<ForecastItem> =
-        items.take(8)
+        items.take(16)
 }
