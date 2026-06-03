@@ -1,5 +1,6 @@
 package com.marknguyen.customappdevelopment.util
 
+import android.graphics.Color
 import com.marknguyen.customappdevelopment.model.DailyForecast
 import com.marknguyen.customappdevelopment.model.ForecastItem
 import java.text.SimpleDateFormat
@@ -88,4 +89,50 @@ object WeatherUtils {
     // Returns up to 16 forecast items (48 hours in 3-hour steps)
     fun getHourlyForecast(items: List<ForecastItem>): List<ForecastItem> =
         items.take(16)
+
+    fun getConditionGradient(conditionId: Int, isDay: Boolean): IntArray = when {
+        !isDay -> intArrayOf(Color.parseColor("#0D1B2A"), Color.parseColor("#1B2A4A"))
+        conditionId in 200..299 -> intArrayOf(Color.parseColor("#263238"), Color.parseColor("#546E7A"))
+        conditionId in 300..531 -> intArrayOf(Color.parseColor("#1565C0"), Color.parseColor("#42A5F5"))
+        conditionId in 600..622 -> intArrayOf(Color.parseColor("#78909C"), Color.parseColor("#CFD8DC"))
+        conditionId in 700..781 -> intArrayOf(Color.parseColor("#5D4037"), Color.parseColor("#A1887F"))
+        conditionId == 800 -> intArrayOf(Color.parseColor("#E65100"), Color.parseColor("#FFA726"))
+        else -> intArrayOf(Color.parseColor("#1565C0"), Color.parseColor("#42A5F5"))
+    }
+
+    fun isDay(dt: Long, sunrise: Long, sunset: Long): Boolean = dt in sunrise..sunset
+
+    fun getUvCategory(uvi: Double): Pair<String, Int> = when {
+        uvi < 3  -> "Low"       to Color.parseColor("#4CAF50")
+        uvi < 6  -> "Moderate"  to Color.parseColor("#FFC107")
+        uvi < 8  -> "High"      to Color.parseColor("#FF9800")
+        uvi < 11 -> "Very High" to Color.parseColor("#F44336")
+        else     -> "Extreme"   to Color.parseColor("#9C27B0")
+    }
+
+    fun getAqiLabel(aqi: Int): Pair<String, Int> = when (aqi) {
+        1 -> "Good"      to Color.parseColor("#4CAF50")
+        2 -> "Fair"      to Color.parseColor("#8BC34A")
+        3 -> "Moderate"  to Color.parseColor("#FFC107")
+        4 -> "Poor"      to Color.parseColor("#FF5722")
+        else -> "Very Poor" to Color.parseColor("#9C27B0")
+    }
+
+    fun getFeelsLikeReason(feelsLike: Double, actual: Double, humidity: Int, windSpeed: Double, unit: String): String {
+        val humidEffect = feelsLike > actual + 1.0 && humidity > 70
+        val windEffect = feelsLike < actual - 1.0 && windSpeed > 3.0
+        return when {
+            humidEffect -> "Humidity makes it feel warmer"
+            windEffect  -> "Wind chill makes it feel cooler"
+            feelsLike > actual + 2.0 -> "Heat index elevated"
+            feelsLike < actual - 2.0 -> "Feels cooler than it is"
+            else -> "Feels about right"
+        }
+    }
+
+    fun formatSunTime(epochSeconds: Long, timezoneOffsetSeconds: Int): String {
+        val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("GMT")
+        return sdf.format(Date((epochSeconds + timezoneOffsetSeconds) * 1000L))
+    }
 }

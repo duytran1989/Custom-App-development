@@ -1,22 +1,30 @@
 package com.marknguyen.customappdevelopment.fragment
 
+import android.Manifest
+import android.location.Geocoder
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.marknguyen.customappdevelopment.R
 import com.marknguyen.customappdevelopment.adapter.CityAdapter
 import com.marknguyen.customappdevelopment.databinding.FragmentHomeBinding
 import com.marknguyen.customappdevelopment.model.CurrentWeatherResponse
 import com.marknguyen.customappdevelopment.repository.WeatherResult
+import com.marknguyen.customappdevelopment.util.SearchHistoryManager
 import com.marknguyen.customappdevelopment.viewmodel.WeatherViewModel
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -25,9 +33,20 @@ class HomeFragment : Fragment() {
 
     private val viewModel: WeatherViewModel by activityViewModels()
     private lateinit var cityAdapter: CityAdapter
+    private lateinit var searchHistoryManager: SearchHistoryManager
 
     // Tracks whether the current weather observer should trigger navigation
     private var pendingNavigation = false
+
+    private val locationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            searchByLocation()
+        } else {
+            Snackbar.make(binding.root, getString(R.string.label_locate_me) + " permission denied", Snackbar.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -36,8 +55,10 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        searchHistoryManager = SearchHistoryManager(requireContext())
         setupAdapter()
         setupSearch()
+        setupLocationButton()
         observeViewModel()
         viewModel.loadFavouritesWeather()
     }
@@ -55,6 +76,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupSearch() {
+        binding.searchEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                loadHistoryChips()
+            }
+        }
+
         binding.searchEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 val query = binding.searchEditText.text?.toString()?.trim() ?: ""
@@ -69,6 +96,72 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun setupLocationButton() {
+        binding.searchInputLayout.setEndIconOnClickListener {
+            val permission = Manifest.permission.ACCESS_COARSE_LOCATION
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                searchByLocation()
+            } else {
+                locationPermissionLauncher.launch(permission)
+            }
+        }
+    }
+
+    private fun searchByLocation() {
+        val locationManager = requireContext().getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager
+        try {
+            val location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                ?: locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            if (location != null) {
+                val geocoder = Geocoder(requireContext(), Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                val cityName = addresses?.firstOrNull()?.locality
+                    ?: addresses?.firstOrNull()?.subAdminArea
+                if (!cityName.isNullOrBlank()) {
+                    binding.searchEditText.setText(cityName)
+                    pendingNavigation = true
+                    hideKeyboard()
+                    viewModel.searchWeather(cityName)
+                    viewModel.loadForecast(cityName)
+                } else {
+                    Snackbar.make(binding.root, "Could not determine city name", Snackbar.LENGTH_SHORT).show()
+                }
+            } else {
+                Snackbar.make(binding.root, "Location not available", Snackbar.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Snackbar.make(binding.root, "Location error: ${e.localizedMessage}", Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadHistoryChips() {
+        val history = searchHistoryManager.getHistory()
+        if (history.isEmpty()) {
+            binding.scrollHistory.visibility = View.GONE
+            return
+        }
+        binding.chipGroupHistory.removeAllViews()
+        history.forEach { city ->
+            val chip = Chip(requireContext()).apply {
+                text = city
+                isCheckable = false
+                setOnClickListener {
+                    binding.searchEditText.setText(city)
+                    pendingNavigation = true
+                    hideKeyboard()
+                    viewModel.searchWeather(city)
+                    viewModel.loadForecast(city)
+                    binding.scrollHistory.visibility = View.GONE
+                }
+            }
+            binding.chipGroupHistory.addView(chip)
+        }
+        binding.scrollHistory.visibility = View.VISIBLE
+    }
+
     private fun observeViewModel() {
         viewModel.currentWeather.observe(viewLifecycleOwner) { result ->
             when (result) {
@@ -77,6 +170,7 @@ class HomeFragment : Fragment() {
                 }
                 is WeatherResult.Success -> {
                     binding.progressBar.visibility = View.GONE
+                    searchHistoryManager.addSearch(result.data.name)
                     if (pendingNavigation) {
                         pendingNavigation = false
                         navigateToDetail(result.data.name)
@@ -128,6 +222,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun hideKeyboard() {
+        binding.scrollHistory.visibility = View.GONE
         val imm = getSystemService(requireContext(), InputMethodManager::class.java)
         imm?.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }

@@ -13,7 +13,9 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:hint="@string/search_hint"
-        app:endIconMode="clear_text"
+        app:endIconMode="custom"
+        app:endIconDrawable="@drawable/ic_locate"
+        app:endIconContentDescription="@string/label_locate_me"
         app:startIconDrawable="@drawable/ic_search"
         app:startIconContentDescription="@string/nav_search">
 
@@ -26,6 +28,21 @@
             android:maxLines="1"
             android:singleLine="true" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/scroll_history"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="4dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_history"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </HorizontalScrollView>
 
     <FrameLayout
         android:layout_width="match_parent"

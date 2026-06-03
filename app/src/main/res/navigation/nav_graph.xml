@@ -49,4 +49,13 @@
             app:argType="string" />
     </fragment>
 
+    <fragment
+        android:id="@+id/onboardingFragment"
+        android:name="com.marknguyen.customappdevelopment.fragment.OnboardingFragment"
+        android:label="Welcome">
+        <action
+            android:id="@+id/action_onboarding_to_home"
+            app:destination="@id/homeFragment"/>
+    </fragment>
+
 </navigation>
