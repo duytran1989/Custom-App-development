@@ -2,8 +2,11 @@ package com.marknguyen.customappdevelopment.model
 
 import com.google.gson.annotations.SerializedName
 
+data class Coord(val lat: Double, val lon: Double)
+
 data class CurrentWeatherResponse(
     val name: String,
+    val coord: Coord,
     val sys: Sys,
     val main: Main,
     val weather: List<Weather>,
@@ -70,4 +73,18 @@ data class DailyForecast(
     val condition: String,
     val tempMin: Double,
     val tempMax: Double
+)
+
+data class UviResponse(val value: Double)
+
+data class AirPollutionResponse(val list: List<AirPollutionItem>)
+data class AirPollutionItem(
+    val main: AqiMain,
+    val components: AqiComponents
+)
+data class AqiMain(val aqi: Int)
+data class AqiComponents(
+    @SerializedName("pm2_5") val pm2_5: Double,
+    val pm10: Double,
+    val no2: Double
 )

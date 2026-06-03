@@ -73,11 +73,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="16dp"
-                    app:cardBackgroundColor="@color/blue_700"
+                    app:cardBackgroundColor="@android:color/transparent"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="4dp">
 
                     <LinearLayout
+                        android:id="@+id/weather_card_content"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -119,11 +120,19 @@
                                     android:textSize="12sp" />
                             </LinearLayout>
 
+                            <com.airbnb.lottie.LottieAnimationView
+                                android:id="@+id/lottie_weather_icon"
+                                android:layout_width="120dp"
+                                android:layout_height="120dp"
+                                app:lottie_autoPlay="true"
+                                app:lottie_loop="true" />
+
                             <ImageView
                                 android:id="@+id/image_weather_icon"
                                 android:layout_width="80dp"
                                 android:layout_height="80dp"
-                                android:scaleType="fitCenter" />
+                                android:scaleType="fitCenter"
+                                android:visibility="gone" />
                         </LinearLayout>
 
                         <TextView
@@ -152,6 +161,19 @@
                             android:layout_marginTop="4dp"
                             android:textColor="#CCFFFFFF"
                             android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/text_feels_reason"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="#22FFFFFF"
+                            android:paddingStart="10dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="4dp"
+                            android:textColor="#CCFFFFFF"
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -174,14 +196,16 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:importantForAccessibility="yes">
 
                             <include
                                 android:id="@+id/stat_humidity"
                                 layout="@layout/item_weather_detail_stat"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:importantForAccessibility="no" />
 
                             <View
                                 android:layout_width="1dp"
@@ -194,7 +218,8 @@
                                 layout="@layout/item_weather_detail_stat"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:importantForAccessibility="no" />
                         </LinearLayout>
 
                         <View
@@ -207,14 +232,16 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:importantForAccessibility="yes">
 
                             <include
                                 android:id="@+id/stat_pressure"
                                 layout="@layout/item_weather_detail_stat"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:importantForAccessibility="no" />
 
                             <View
                                 android:layout_width="1dp"
@@ -227,7 +254,8 @@
                                 layout="@layout/item_weather_detail_stat"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:importantForAccessibility="no" />
                         </LinearLayout>
 
                         <View
@@ -240,14 +268,16 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:importantForAccessibility="yes">
 
                             <include
                                 android:id="@+id/stat_wind_dir"
                                 layout="@layout/item_weather_detail_stat"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:importantForAccessibility="no" />
 
                             <View
                                 android:layout_width="1dp"
@@ -260,8 +290,147 @@
                                 layout="@layout/item_weather_detail_stat"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1" />
+                                android:layout_weight="1"
+                                android:importantForAccessibility="no" />
                         </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- UV Index card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_uvi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_uv_index"
+                                android:textSize="11sp"
+                                android:textColor="@color/text_secondary"
+                                android:letterSpacing="0.08"
+                                android:textAllCaps="true"/>
+                            <TextView
+                                android:id="@+id/text_uvi_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="32sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"/>
+                            <TextView
+                                android:id="@+id/text_uvi_category"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="14sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+                        <View
+                            android:id="@+id/view_uvi_bar_bg"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:background="#22000000"/>
+                        <TextView
+                            android:id="@+id/text_uvi_bar"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:layout_marginStart="-80dp"
+                            android:gravity="center"
+                            android:textSize="28sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- AQI card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_aqi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_aqi"
+                                android:textSize="11sp"
+                                android:textColor="@color/text_secondary"
+                                android:letterSpacing="0.08"
+                                android:textAllCaps="true"/>
+                            <TextView
+                                android:id="@+id/text_aqi_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="32sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"/>
+                            <TextView
+                                android:id="@+id/text_aqi_label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="14sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Sunrise / Sunset card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_sunrise_sunset"
+                            android:textSize="11sp"
+                            android:textColor="@color/text_secondary"
+                            android:letterSpacing="0.08"
+                            android:textAllCaps="true"
+                            android:layout_marginBottom="8dp"/>
+                        <com.marknguyen.customappdevelopment.ui.SunriseSunsetView
+                            android:id="@+id/view_sunrise_sunset"
+                            android:layout_width="match_parent"
+                            android:layout_height="160dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -312,6 +481,14 @@
         </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <!-- Shimmer loading overlay -->
+    <include
+        android:id="@+id/shimmer_layout"
+        layout="@layout/layout_shimmer_detail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
     <!-- Error state overlay -->
     <LinearLayout
         android:id="@+id/error_state"
@@ -326,7 +503,7 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:importantForAccessibility="no"
-            android:src="@drawable/ic_error" />
+            android:src="@drawable/ic_cloud_offline" />
 
         <TextView
             android:id="@+id/text_error"

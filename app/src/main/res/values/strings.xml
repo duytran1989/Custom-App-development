@@ -44,4 +44,12 @@
     <string name="label_radar_map">Rain Radar</string>
     <string name="label_offline_mode">Offline — showing cached data</string>
     <string name="label_map_loading">Loading radar map…</string>
+    <string name="label_uv_index">UV Index</string>
+    <string name="label_aqi">Air Quality</string>
+    <string name="label_sunrise_sunset">Sunrise · Sunset</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="label_search_history">Recent searches</string>
+    <string name="error_no_internet_msg">No internet connection</string>
+    <string name="error_city_not_found_msg">City not found</string>
+    <string name="label_locate_me">Use my location</string>
 </resources>

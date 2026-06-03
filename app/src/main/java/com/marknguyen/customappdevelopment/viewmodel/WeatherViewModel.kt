@@ -5,8 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.marknguyen.customappdevelopment.model.AirPollutionResponse
 import com.marknguyen.customappdevelopment.model.CurrentWeatherResponse
 import com.marknguyen.customappdevelopment.model.ForecastResponse
+import com.marknguyen.customappdevelopment.model.UviResponse
 import com.marknguyen.customappdevelopment.repository.WeatherRepository
 import com.marknguyen.customappdevelopment.repository.WeatherResult
 import com.marknguyen.customappdevelopment.util.FavouritesManager
@@ -31,6 +33,12 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val _favouriteWeather = MutableLiveData<List<WeatherResult<CurrentWeatherResponse>>>()
     val favouriteWeather: LiveData<List<WeatherResult<CurrentWeatherResponse>>> = _favouriteWeather
 
+    private val _uvIndex = MutableLiveData<WeatherResult<UviResponse>>()
+    val uvIndex: LiveData<WeatherResult<UviResponse>> = _uvIndex
+
+    private val _airPollution = MutableLiveData<WeatherResult<AirPollutionResponse>>()
+    val airPollution: LiveData<WeatherResult<AirPollutionResponse>> = _airPollution
+
     var currentCityName: String = ""
         private set
 
@@ -45,7 +53,11 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                 is WeatherResult.CachedSuccess -> result.data
                 else -> null
             }
-            if (data != null) _isSaved.value = favouritesManager.isFavourite(data.name)
+            if (data != null) {
+                _isSaved.value = favouritesManager.isFavourite(data.name)
+                viewModelScope.launch { _uvIndex.value = repository.getUvIndex(data.coord.lat, data.coord.lon) }
+                viewModelScope.launch { _airPollution.value = repository.getAirPollution(data.coord.lat, data.coord.lon) }
+            }
         }
     }
 
@@ -86,5 +98,10 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             searchWeather(currentCityName)
             loadForecast(currentCityName)
         }
+    }
+
+    fun loadUviAndAqi(lat: Double, lon: Double) {
+        viewModelScope.launch { _uvIndex.value = repository.getUvIndex(lat, lon) }
+        viewModelScope.launch { _airPollution.value = repository.getAirPollution(lat, lon) }
     }
 }

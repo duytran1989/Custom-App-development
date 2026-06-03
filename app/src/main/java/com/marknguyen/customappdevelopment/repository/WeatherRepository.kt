@@ -2,8 +2,10 @@ package com.marknguyen.customappdevelopment.repository
 
 import android.app.Application
 import com.marknguyen.customappdevelopment.api.RetrofitClient
+import com.marknguyen.customappdevelopment.model.AirPollutionResponse
 import com.marknguyen.customappdevelopment.model.CurrentWeatherResponse
 import com.marknguyen.customappdevelopment.model.ForecastResponse
+import com.marknguyen.customappdevelopment.model.UviResponse
 import com.marknguyen.customappdevelopment.util.Constants
 import com.marknguyen.customappdevelopment.util.WeatherCacheManager
 import java.io.IOException
@@ -69,6 +71,36 @@ class WeatherRepository(application: Application) {
             else WeatherResult.Error("No internet connection")
         } catch (e: Exception) {
             WeatherResult.Error("Unexpected error: ${e.localizedMessage}")
+        }
+    }
+
+    suspend fun getUvIndex(lat: Double, lon: Double): WeatherResult<UviResponse> {
+        return try {
+            val response = api.getUvIndex(lat, lon, Constants.API_KEY)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) WeatherResult.Success(body)
+                else WeatherResult.Error("No UV data")
+            } else WeatherResult.Error("UV fetch failed")
+        } catch (e: IOException) {
+            WeatherResult.Error("No internet")
+        } catch (e: Exception) {
+            WeatherResult.Error("Error: ${e.localizedMessage}")
+        }
+    }
+
+    suspend fun getAirPollution(lat: Double, lon: Double): WeatherResult<AirPollutionResponse> {
+        return try {
+            val response = api.getAirPollution(lat, lon, Constants.API_KEY)
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) WeatherResult.Success(body)
+                else WeatherResult.Error("No AQI data")
+            } else WeatherResult.Error("AQI fetch failed")
+        } catch (e: IOException) {
+            WeatherResult.Error("No internet")
+        } catch (e: Exception) {
+            WeatherResult.Error("Error: ${e.localizedMessage}")
         }
     }
 }

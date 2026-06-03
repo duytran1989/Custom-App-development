@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/blue_700">
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager_onboarding"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="24dp">
+
+        <View android:id="@+id/dot1"
+            android:layout_width="10dp" android:layout_height="10dp"
+            android:layout_margin="4dp"
+            android:background="@color/white" />
+        <View android:id="@+id/dot2"
+            android:layout_width="10dp" android:layout_height="10dp"
+            android:layout_margin="4dp"
+            android:background="#66FFFFFF" />
+        <View android:id="@+id/dot3"
+            android:layout_width="10dp" android:layout_height="10dp"
+            android:layout_margin="4dp"
+            android:background="#66FFFFFF" />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_next"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:minHeight="56dp"
+        android:text="Next"
+        style="@style/Widget.MaterialComponents.Button" />
+</LinearLayout>
