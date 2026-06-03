@@ -37,7 +37,6 @@ class WeatherDetailFragment : Fragment() {
 
         val unit = viewModel.settingsManager.temperatureUnit
 
-        // Horizontal layout manager must be set in code — XML orientation attr doesn't apply to RecyclerView
         hourlyAdapter = HourlyForecastAdapter(unit, 0)
         binding.recyclerHourly.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -61,11 +60,12 @@ class WeatherDetailFragment : Fragment() {
 
     private fun setupFab() {
         binding.fabSave.setOnClickListener {
-            val cityName = (viewModel.currentWeather.value as? WeatherResult.Success)?.data?.name
-                ?: viewModel.currentCityName
-            if (cityName.isNotBlank()) {
-                viewModel.toggleSave(cityName)
+            val cityName = when (val result = viewModel.currentWeather.value) {
+                is WeatherResult.Success -> result.data.name
+                is WeatherResult.CachedSuccess -> result.data.name
+                else -> viewModel.currentCityName
             }
+            if (cityName.isNotBlank()) viewModel.toggleSave(cityName)
         }
     }
 
@@ -74,7 +74,14 @@ class WeatherDetailFragment : Fragment() {
             binding.swipeRefresh.isRefreshing = false
             when (result) {
                 is WeatherResult.Loading -> showLoading()
-                is WeatherResult.Success -> showWeather(result.data)
+                is WeatherResult.Success -> {
+                    binding.bannerOffline.visibility = View.GONE
+                    showWeather(result.data)
+                }
+                is WeatherResult.CachedSuccess -> {
+                    binding.bannerOffline.visibility = View.VISIBLE
+                    showWeather(result.data)
+                }
                 is WeatherResult.Error -> showError(result.message)
             }
         }
@@ -82,17 +89,19 @@ class WeatherDetailFragment : Fragment() {
 
     private fun observeForecast() {
         viewModel.forecast.observe(viewLifecycleOwner) { result ->
-            if (result is WeatherResult.Success) {
-                val data = result.data
-                // Recreate hourly adapter with the correct city timezone
-                hourlyAdapter = HourlyForecastAdapter(
-                    viewModel.settingsManager.temperatureUnit,
-                    data.city.timezone
-                )
-                binding.recyclerHourly.adapter = hourlyAdapter
-                hourlyAdapter.submitList(WeatherUtils.getHourlyForecast(data.list))
-                dailyAdapter.submitList(WeatherUtils.groupForecastByDay(data.list))
-            }
+            val data = when (result) {
+                is WeatherResult.Success -> result.data
+                is WeatherResult.CachedSuccess -> result.data
+                else -> null
+            } ?: return@observe
+
+            hourlyAdapter = HourlyForecastAdapter(
+                viewModel.settingsManager.temperatureUnit,
+                data.city.timezone
+            )
+            binding.recyclerHourly.adapter = hourlyAdapter
+            hourlyAdapter.submitList(WeatherUtils.getHourlyForecast(data.list))
+            dailyAdapter.submitList(WeatherUtils.groupForecastByDay(data.list))
         }
     }
 
@@ -112,6 +121,7 @@ class WeatherDetailFragment : Fragment() {
         binding.progressBar.visibility = View.VISIBLE
         binding.swipeRefresh.visibility = View.GONE
         binding.errorState.visibility = View.GONE
+        binding.bannerAlert.visibility = View.GONE
     }
 
     private fun showWeather(weather: CurrentWeatherResponse) {
@@ -132,7 +142,6 @@ class WeatherDetailFragment : Fragment() {
         binding.textCondition.text = condition?.description?.replaceFirstChar { it.uppercase() } ?: ""
         binding.textFeelsLike.text = getString(R.string.label_feels_like) + " $feelsLike$unitSymbol"
 
-        // Accessibility: screen readers announce the full temperature with unit
         binding.textTemperature.contentDescription =
             getString(R.string.cd_temperature, "$temp$unitSymbol")
 
@@ -153,12 +162,47 @@ class WeatherDetailFragment : Fragment() {
 
         binding.statVisibility.statLabel.text = getString(R.string.label_visibility)
         binding.statVisibility.statValue.text = WeatherUtils.formatVisibility(weather.visibility)
+
+        binding.statWindDir.statLabel.text = getString(R.string.label_wind_direction)
+        binding.statWindDir.statValue.text = WeatherUtils.getWindDirection(weather.wind.deg)
+
+        binding.statWindGust.statLabel.text = getString(R.string.label_wind_gust)
+        binding.statWindGust.statValue.text = weather.wind.gust
+            ?.let { WeatherUtils.formatWindSpeed(it, unit) }
+            ?: getString(R.string.label_na)
+
+        showAlertBanner(condition?.id)
+    }
+
+    private fun showAlertBanner(conditionId: Int?) {
+        if (conditionId == null) {
+            binding.bannerAlert.visibility = View.GONE
+            return
+        }
+        val (message, colorRes) = getAlertInfo(conditionId) ?: run {
+            binding.bannerAlert.visibility = View.GONE
+            return
+        }
+        binding.bannerAlert.setBackgroundColor(requireContext().getColor(colorRes))
+        binding.textAlert.text = message
+        binding.bannerAlert.visibility = View.VISIBLE
+    }
+
+    private fun getAlertInfo(conditionId: Int): Pair<String, Int>? = when (conditionId) {
+        in 200..299 -> "Severe Thunderstorm Warning — Seek shelter. Lightning and damaging winds possible." to R.color.alert_warning
+        502, 503, 504, 511, 522, 531 -> "Heavy Rain Warning — Flash flooding possible. Exercise caution on roads." to R.color.alert_warning
+        in 600..622 -> "Snow Alert — Hazardous road conditions expected." to R.color.alert_info
+        in 700..781 -> "Visibility Warning — Dense fog or hazardous atmosphere. Drive with care." to R.color.alert_info
+        900, 901, 902, 905, 906 -> "Extreme Weather Alert — Dangerous conditions. Remain indoors." to R.color.alert_danger
+        960, 961, 962 -> "Extreme Storm Warning — Life-threatening conditions. Follow official advice." to R.color.alert_danger
+        else -> null
     }
 
     private fun showError(message: String) {
         binding.progressBar.visibility = View.GONE
         binding.swipeRefresh.visibility = View.GONE
         binding.errorState.visibility = View.VISIBLE
+        binding.bannerAlert.visibility = View.GONE
         binding.textError.text = message
         binding.btnRetry.setOnClickListener { viewModel.refreshCurrentWeather() }
     }

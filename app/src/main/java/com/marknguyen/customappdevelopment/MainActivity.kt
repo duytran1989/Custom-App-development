@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         // Top-level destinations don't show the Up button
         val appBarConfig = AppBarConfiguration(
-            setOf(R.id.homeFragment, R.id.savedFragment, R.id.settingsFragment)
+            setOf(R.id.homeFragment, R.id.savedFragment, R.id.mapFragment, R.id.settingsFragment)
         )
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfig)
         binding.bottomNavigation.setupWithNavController(navController)

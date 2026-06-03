@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class WeatherViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = WeatherRepository()
+    private val repository = WeatherRepository(application)
     val favouritesManager = FavouritesManager(application)
     val settingsManager = SettingsManager(application)
 
@@ -40,9 +40,12 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             val result = repository.getCurrentWeather(city, settingsManager.temperatureUnit)
             _currentWeather.value = result
-            if (result is WeatherResult.Success) {
-                _isSaved.value = favouritesManager.isFavourite(result.data.name)
+            val data = when (result) {
+                is WeatherResult.Success -> result.data
+                is WeatherResult.CachedSuccess -> result.data
+                else -> null
             }
+            if (data != null) _isSaved.value = favouritesManager.isFavourite(data.name)
         }
     }
 
